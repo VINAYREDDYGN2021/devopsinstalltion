@@ -1,0 +1,220 @@
+** Executing chef-client without Chef Server involvement
+
+First Recipe 
+
+file '/home/ec2-user/hello1.txt' do
+        content 'Welcome to Chef World'
+	action :create
+end
+
+chef-client --local-mode hello.rb
+___________________________________________
+
+Two type of resources
+
+Type : file, packages, services, users, groups etc..
+Desire State : action towards type (Example : Packages means do you want install, enable service, uninstall etc..)
+
+
+Chef Client
+
+Agent who run on locally
+______________________________________________________
+package 'tree' do
+ action :install
+end
+
+package 'wget' do
+ action :install
+end
+
+package 'tomcat' do
+ acction :install
+end
+
+file '/etc/motd' do
+ content 'Property of ...'
+ action :create
+end
+
+________________________________________
+
+Cookbook : Collection of recipes
+
+Cookbook components : 
+_________________________________
+
+Create a new cookbook name as apache
+
+Create recipe name as server
+
+Go to home folder (chef-repo folder) and execute below commands for generating receipe 
+
+chef generate recipe cookbooks/apache/ server
+
+package 'httpd' do
+	
+action :install
+
+end
+
+
+
+file '/var/www/html/index.html' do
+	
+content '<h1>Hello, world!</h1>'
+
+end
+
+
+
+service 'httpd' do
+	
+action [:enable,:start ]
+
+end
+
+Dry Run
+chef exec ruby -c cookbooks/apache/recipes/server.rb
+chef-client -z cookbooks/apache/recipes/server.rb (local mode replace with -z)
+
+Apply
+curl localhost
+You can get following output
+<h1>Hello, world!</h1>
+_________________________________________________________________________________________
+
+Generating Cookbook 
+chef generate cookbook cookbooks/workstation
+copy setup.rb into workstation recipe folder
+
+chef generate cookbook cookbooks/apache
+
+Generate Recipe by cookbook commands
+
+chef generate recipe apache/ server
+
+Add following resources at server.rb
+
+Checking Syntax error or not by applying
+
+chef exec ruby -c server.rb
+
+Execute server.rb
+
+chef-client --local-mode server.rb (You can replace --local-mode with -z)
+Apply, curl localhost
+You get output of Hello, world
+
+_______________________________________________________________________
+
+Run Multiply cookbook and below is syntax
+
+chef-client -z --runlist "cookbook::receip"
+
+chef-client -z --runlist "apache::server"
+
+chef-client -z --runlist "workstation::setup"
+
+chef-client -z -r "recipe[apache::server]"
+
+chef-client -z -r "recipe[apache::server],recipe[workstation::setup]"
+
+____________________________________________________________________________
+
+Include Recipe Method
+
+Allow to call one or more recipe
+
+Go to default.rb, where you include the following
+
+include_recipe "workstation::setup"
+
+Execution is
+
+chef-client -z -r "recipe[workstation]"
+
+Go to apache cookbook and edit default.rb
+
+Add include_recipe "apache::server"
+
+chef-client -z -r "recipe[apache]"
+
+__________________________________________________
+
+How to run multiple cookbook within single statement
+
+chef-client -zr "recipe[apache],recipe[workstation]"
+
+____________________________________________________________________________________________
+
+Why Chef Server
+
+Apply 
+knife client list
+
+knife ssl check
+Ensure that your workstation connected with Chef Server
+
+knife cookbook list
+
+knife cookbook upload <cookbook name>
+
+knife node list
+
+knife node show <node name>
+
+Adding Workstation cookbook to Node
+
+knife node run_list add <node name> "recipe[cookbook name],recipe[cookbook name]"
+Example : knife node run_list add mychef "recipe[workstation],recipe[apache]"
+____________________________________________________________________________________
+
+How to determine when chef last converged on a node?
+
+$ knife node converge-status <your node name>
+
+________________________________________________________________________________________
+
+Install package without having recipe and below is command
+sudo chef-apply -e "package 'vim'"
+
+________________________________________________________________________________________
+At worker Node Configuring the chef-client to run using cron
+
+The following cron job sample will work and apply in the entry below into a file called chef-client under the directory /etc/cron.d/
+
+PATH=/usr/local/bin:/usr/bin:/bin
+# m h dom mon dow user command
+* * * * * root chef-client -l error -L /var/log/chef-client
+
+_______________________________________________________________________________________________
+
+How to ensure automation is happening or not
+
+Your recipe with simple installation of tree as per below which you need to mention at your role
+
+mytree.rb (at recipe folder)
+package 'tree'
+
+Go to all node and check whether tree has installed or not by using command of which tree at your node
+
+Go to recipe folder at edit recipe as below (for uninstalling tree)
+
+mytree.rb (at recipe folder)
+package 'tree' do
+action :remove
+end
+
+Now go to all node and apply 'which tree' command and you get the output of not installed tree
+
+Happy learning
+_______________________________________________________________________________________________
+
+Listing Cookbooks
+
+knife cookbook list
+
+Delete Cookbook
+
+knife cookbook delete << Cookbook Name with version >>

@@ -1,0 +1,148 @@
+Jenkins Distributed Build
+
+Create couple of AWS Ubuntu 18.04 instances
+
+Name as
+
+-	Master
+-	Node1
+
+Step 1
+
+At Master Node
+
+Install Java
+
+Get into root user, 
+
+sudo su
+
+apt install software-properties-common apt-transport-https -y
+Please ignore the error
+add-apt-repository ppa:openjdk-r/ppa -y
+
+apt install openjdk-8-jdk -y
+
+java -version
+
+Please ensure that JDK 1.8 has to be installed
+
+*****************************************************************************************
+
+Step 2
+
+Master Node
+
+Install Jenkins
+
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+
+echo 'deb https://pkg.jenkins.io/debian-stable binary/' | tee -a /etc/apt/sources.list
+
+apt-get update
+
+apt install jenkins -y
+
+systemctl start jenkins
+
+Jenkins has installed
+
+Go to AWS EC2 Console, copy public DNS value and go to any browser where you apply 
+
+DNS value with :8080
+
+Example : http://ec2-54-173-81-29.compute-1.amazonaws.com:8080
+
+Obtain Jenkins password
+
+Install Jenkins Plugin
+
+
+
+*******************************************************************************************
+Step 3
+Set up Node1
+
+Get into root user
+sudo su
+
+apt install software-properties-common apt-transport-https -y
+Ignore the error
+
+add-apt-repository ppa:openjdk-r/ppa -y
+
+apt install openjdk-8-jdk -y
+
+java -version
+
+Please ensure JDK 1.8 has to be installed
+
+******************************************************************************************
+
+Step 4
+
+Go to Mater and Node1
+
+-	Provide root user password, by applying below
+
+-	passwd root
+
+-	Give password to root and remember it
+
+
+_______________________________________________________________________________________
+
+Go to Master
+
+-	Apply SSH
+
+-	ssh-keygen (Don't feed any data and keep on enter button)
+
+___________________________________________________________________________________________________________________
+
+Go to Master and Node1 ssh_config file and do the below changes
+
+Path is : vi /etc/ssh/sshd_config
+
+Replace prohibit passward with yes and remove #
+PermitRootLogin yes
+
+Replace no with yes for PasswordAuthentication
+PasswordAuthentication yes
+
+Restart the configure file 
+
+service sshd restart
+
+<< apply Ubuntu commands for restart the configurations >>
+_______________________________________________________________________________________________________________
+
+Go to Master
+
+This is for addding SSH Key
+
+- a)	By apply below commands
+
+- b)	ssh-copy-id root@<<private ip address of worker node>>
+- c)	Eg: ssh-copy-id root@172.31.47.75 
+
+- d)	root is a user name of Node1
+- e)	Private ip address : provide Node1 private ip address
+
+- f)	When you applying first time, system prompt to ask password
+
+- g)	You need to provide, Node1 root user password
+
+
+
+Ensure that, from Master node you can get into worker node without asking password
+- 	Apply
+	ssh root@<Node1 Private ip address>
+	System is redirecting to Node1 w/o asking password
+	By applying below commends
+	exit
+	You can exit from Node1 to Master
+
+******************************************************************************************
+
+
